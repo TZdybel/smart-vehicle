@@ -1,0 +1,10 @@
+main.c:196:6:SystemClock_Config	248	static
+main.c:111:5:main	80	static
+main.c:683:6:shiftOut	16	static
+main.c:694:6:setIC3	8	static
+main.c:713:6:setSpeed	40	static
+main.c:723:6:setMotorParameters	8	static
+main.c:729:6:MotorCommand	8	static
+main.c:748:6:StartDefaultTask	8	static
+main.c:775:6:HAL_TIM_PeriodElapsedCallback	0	static
+main.c:794:6:_Error_Handler	0	static
