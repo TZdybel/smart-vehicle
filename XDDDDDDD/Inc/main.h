@@ -228,10 +228,21 @@
 
 /* USER CODE BEGIN Private defines */
 
-#define MOTOR1_A 2
+//A - JEDZIE DO TY�U, B - DO PRZODU
+#define MOTOR1_A 2		//MOTOR 1 - PRAWE KӣKO
 #define MOTOR1_B 3
-#define MOTOR2_A 1
+#define MOTOR2_A 1		//MOTOR 2 - LEWE KӣKO
 #define MOTOR2_B 4
+
+#define MTFORWARD 1
+#define MTBACKWARD 2
+#define MTLEFT 3
+#define MTRIGHT 4
+
+#define MTBRAKE 1
+
+#define TIM_CHANNEL_MOTOR1 3
+#define TIM_CHANNEL_MOTOR2 2
 
 /* USER CODE END Private defines */
 

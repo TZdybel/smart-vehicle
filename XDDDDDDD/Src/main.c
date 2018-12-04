@@ -411,7 +411,7 @@ static void MX_TIM3_Init(void)
   }
 
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0x10;
+  sConfigOC.Pulse = 0xC0;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
@@ -419,6 +419,10 @@ static void MX_TIM3_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
+/*  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0xC0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;*/
   if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -691,7 +695,7 @@ void shiftOut(uint8_t value) {
 
 //setIC3 - ustawia odpowiednie wartoœci na rejestrze, odpowiedzialnym za
 //podawaniem odpowiednich napiêc powoduj¹cych zmiane kierunku.
-void setIC3(int output) {
+void setIC3(int new_register_state) {
 	//PB2 - DIR_SER - D8
 	//PB3 - DIR_CLK - stan wysoki
 	//PA4 - DIR_EN - LOW
@@ -700,8 +704,8 @@ void setIC3(int output) {
 	HAL_GPIO_WritePin(DIR_SER_GPIO_Port, DIR_SER_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(DIR_LATCH_GPIO_Port, DIR_LATCH_Pin, GPIO_PIN_RESET);
 
-	uint8_t new_register_state = 0;
-	new_register_state = (1 << (7 - output));
+//	uint8_t new_register_state = 0;
+//	new_register_state = (1 << (7 - output));
 
 	shiftOut(new_register_state);
 	osDelay(5);
@@ -710,30 +714,73 @@ void setIC3(int output) {
 	HAL_GPIO_WritePin(DIR_LATCH_GPIO_Port, DIR_LATCH_Pin, GPIO_PIN_RESET);
 }
 
-void setSpeed(int speed) {
-	TIM_OC_InitTypeDef sConfigOC;
-	sConfigOC.OCMode = TIM_OCMODE_PWM1;
-	sConfigOC.Pulse = speed;
-	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-	HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3);
+uint8_t createStorageRegisterValue(int t[],  int n) {
+    uint8_t value = 0;
+    for (int i = 0; i < n; ++i) value = (value | (1 << (7 - t[i])));
+    return value;
+}
+
+//ustawia prêdkoœæ na PWMie
+void setSpeed(int speed, int channel) {
+	if (channel == 3) {
+		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, speed);
+	} else if (channel == 2) {
+		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, speed);
+	}
 }
 
 //ustawia odpowiednie parametry na PWMie
-void setMotorParameters(int output, int speed) {
-	setSpeed(speed);
-	setIC3(output);
+void setMotorParameters(int new_register_state, int speed, int channel) {
+	setSpeed(speed, channel);
+	setIC3(new_register_state);
 }
 
 //Wywo³uje setMotorParameters z odpowiednimi parametrami w zale¿noœci od porz¹danego kierunku
-void MotorCommand() {
-	int motor1, motor2;
+void MotorCommand(int fwd_bck, int left_right, int brake) {
+    int motors[2];
 
-	motor1 = MOTOR1_A;
-	motor2 = MOTOR2_A;
+//  trzymaj¹c przycisk ruchu pojazdu, stopniowo dodajemy mu prêdkoœci,
+//  jeœli puœcimy wywo³uje siê break(pojazd staje)
 
-	setMotorParameters(motor1, 0xE0);
-	setMotorParameters(motor2, 0xE0);
+//    if (prevCommand == command) setSpeed()
+    if (brake) {
+    	for(int i = 0x00; i <= 0xF0; i+=5) {
+    		setSpeed(0xF0-i, TIM_CHANNEL_MOTOR1);
+    		setSpeed(0xF0-i, TIM_CHANNEL_MOTOR2);
+    		osDelay(50);
+    	}
+    	return;
+    }
+
+	switch(fwd_bck) {
+        case MTBACKWARD:
+        	motors[0] = MOTOR1_A;
+        	motors[1] = MOTOR2_A;
+        	setIC3(createStorageRegisterValue(motors, 2));
+            break;
+        case MTFORWARD:
+        	motors[0] = MOTOR1_B;
+        	motors[1] = MOTOR2_B;
+        	setIC3(createStorageRegisterValue(motors, 2));
+            break;
+        default:
+            break;
+	}
+
+	switch(left_right) {
+		case MTLEFT:
+			setSpeed(0xF0, TIM_CHANNEL_MOTOR1);
+			setSpeed(0xD0, TIM_CHANNEL_MOTOR2);
+			break;
+		case MTRIGHT:
+			setSpeed(0xD0, TIM_CHANNEL_MOTOR1);
+			setSpeed(0xF0, TIM_CHANNEL_MOTOR2);
+			break;
+		default:
+			setSpeed(0xF0, TIM_CHANNEL_MOTOR1);
+			setSpeed(0xF0, TIM_CHANNEL_MOTOR2);
+			break;
+	}
 }
 
 /* USER CODE END 4 */
@@ -751,15 +798,30 @@ void StartDefaultTask(void const * argument)
   /* USER CODE BEGIN 5 */
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
-	MotorCommand();
+
   /* Infinite loop */
 
+//C:\Users\Student\STM32Cube\Repository\STM32Cube_FW_L4_V1.13.0\Projects\B-L475E-IOT01A\Templates
   for(;;)
   {
-//	  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
-//	  HAL_Delay(100);
-//	  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
-//	  HAL_Delay(100);
+	  MotorCommand(MTFORWARD, 0, 0);
+	  osDelay(3000);
+	  MotorCommand(MTBACKWARD, 0, 0);
+	  osDelay(3000);
+	  MotorCommand(0, 0, 1);
+	  osDelay(3000);
+	  MotorCommand(MTFORWARD, MTLEFT, 0);
+	  osDelay(3000);
+	  MotorCommand(MTFORWARD, MTRIGHT, 0);
+	  osDelay(3000);
+	  MotorCommand(0, 0, 1);
+	  osDelay(3000);
+	  MotorCommand(MTBACKWARD, MTLEFT, 0);
+	  osDelay(3000);
+	  MotorCommand(MTBACKWARD, MTRIGHT, 0);
+	  osDelay(3000);
+	  MotorCommand(0, 0, 1);
+	  osDelay(3000);
   }
   /* USER CODE END 5 */ 
 }
