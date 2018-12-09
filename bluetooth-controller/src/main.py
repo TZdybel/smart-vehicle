@@ -20,11 +20,11 @@ def init_ble():
 
 def init_pygame():
     pygame.init()
-    clock = pygame.time.Clock()
+    # clock = pygame.time.Clock()
 
     pygame.init()
     pygame.display.set_mode((640, 480))
-    return clock
+    # return clock
 
 
 def read_keyboard():
@@ -61,11 +61,10 @@ def read_keyboard():
 
 
 def process():
-    # clock = init_pygame()
+    init_pygame()
     sock = init_ble()
 
     while True:
-        # clock.tick(60)
         pygame.time.wait(500)
 
         data = read_keyboard()
