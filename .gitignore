@@ -1,0 +1,5 @@
+bluetooth-controller/venv/*
+bluetooth-controller/.idea/*
+bluetooth-controller/src/*/__pycache__
+bluetooth-controller/src/__pycache__
+
