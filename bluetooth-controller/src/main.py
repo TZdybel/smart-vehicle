@@ -1,21 +1,20 @@
-import bluetooth
+import socket
 import pygame
 import time
 
 
-def init_ble():
-    nearby_devices = bluetooth.discover_devices(lookup_names=True)
-    print("Found %d devices" % len(nearby_devices))
-    print(nearby_devices)
+def init_wifi(host, port):
+    # host_addr = '198.168.0.1'
+    # port = 2137
+    # sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
+    # sock.connect((device_mac_addr, port))
 
-    device_mac_addr = '0C:54:15:8D:60:98'
-    port = 1
-    sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
-    sock.connect((device_mac_addr, port))
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect((host, port))
 
     time.sleep(2)
 
-    return sock
+    return s
 
 
 def init_pygame():
@@ -62,10 +61,13 @@ def read_keyboard():
 
 def process():
     init_pygame()
-    sock = init_ble()
+
+    host = '198.168.0.1'
+    port = 2137
+    sock = init_wifi(host, port)
 
     while True:
-        pygame.time.wait(500)
+        # pygame.time.wait(500)
 
         data = read_keyboard()
 
@@ -74,7 +76,8 @@ def process():
             return
 
         print(data)
-        sock.send(str(data))
+        # sock.send(str(data))
+        sock.sendto(str(data).encode(), (host, port))
         pygame.event.pump()
 
 
