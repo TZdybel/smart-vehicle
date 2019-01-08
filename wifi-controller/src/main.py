@@ -14,28 +14,36 @@ def init_pygame():
 
 def read_keyboard():
     data = ['0'] * 6
+    data[0] = '1'
 
     keys = pygame.key.get_pressed()
 
-    if keys[pygame.K_w]:
-        # print("SPEED UP")
-        data[0] = '1'
-    elif keys[pygame.K_s]:
-        # print("SLOW DOWN")
-        data[1] = '1'
+    # if keys[pygame.K_w]:
+    #     # print("SPEED UP")
+    #     data[0] = '1'
+    # elif keys[pygame.K_s]:
+    #     # print("SLOW DOWN")
+    #     data[1] = '1'
 
     if keys[pygame.K_UP]:
         # print("FORWARD")
-        data[2] = '1'
+        data[1] = '1'
+        data[0] = '0'
     elif keys[pygame.K_DOWN]:
         # print("BACKWARD")
-        data[3] = '1'
+        data[0] = '0'
+        data[2] = '1'
 
     if keys[pygame.K_LEFT]:
         # print("LEFT")
-        data[4] = '1'
+        data[0] = '0'
+        data[3] = '1'
     elif keys[pygame.K_RIGHT]:
         # print("RIGHT")
+        data[0] = '0'
+        data[4] = '1'
+
+    if keys[pygame.K_CAPSLOCK]:
         data[5] = '1'
 
     if keys[pygame.K_ESCAPE]:
@@ -48,17 +56,18 @@ def read_keyboard():
 def process():
     init_pygame()
 
-    # host = '192.168.43.94'
-    host = "127.0.0.1"
-    port = 8002
+    host = '192.168.43.94'
+    # host = "127.0.0.1"
+    port = 2137
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.connect((host, port))
     last_sent = None
 
     counter = 0
-
+    delta = 10000
     while True:
         counter += 1
+        delta += 1
 
         data = read_keyboard()
 
@@ -66,8 +75,9 @@ def process():
             sock.close()
             return
 
-        if data != last_sent:
+        if data != last_sent and delta > 95000:
             counter = 0
+            delta = 0
             sock.sendto(data.encode(), (host, port))
             print("CHANGE ", data)
             last_sent = data
