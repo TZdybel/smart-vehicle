@@ -53,6 +53,7 @@
 
 /* USER CODE BEGIN Includes */
 #include "stm32l4xx_hal_gpio.h"
+#include "wifi.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -75,7 +76,8 @@ osThreadId defaultTaskHandle;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-
+int motor1_speed = 0x00;
+int motor2_speed = 0x00;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -411,7 +413,7 @@ static void MX_TIM3_Init(void)
   }
 
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0xC0;
+  sConfigOC.Pulse = 0x00;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
@@ -419,10 +421,6 @@ static void MX_TIM3_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-/*  sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0xC0;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;*/
   if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -736,7 +734,7 @@ void setMotorParameters(int new_register_state, int speed, int channel) {
 }
 
 //Wywo³uje setMotorParameters z odpowiednimi parametrami w zale¿noœci od porz¹danego kierunku
-void MotorCommand(int fwd_bck, int left_right, int brake) {
+void MotorCommand(int fwd_bck, int left_right, int brake, int speed) {
     int motors[2];
 
 //  trzymaj¹c przycisk ruchu pojazdu, stopniowo dodajemy mu prêdkoœci,
@@ -744,11 +742,14 @@ void MotorCommand(int fwd_bck, int left_right, int brake) {
 
 //    if (prevCommand == command) setSpeed()
     if (brake) {
-    	for(int i = 0x00; i <= 0xF0; i+=5) {
-    		setSpeed(0xF0-i, TIM_CHANNEL_MOTOR1);
-    		setSpeed(0xF0-i, TIM_CHANNEL_MOTOR2);
-    		osDelay(50);
+    	int speed = max(motor1_speed, motor2_speed);
+    	for(int i = 0x00; i <= speed; i+=10) {
+    		setSpeed(speed-i, TIM_CHANNEL_MOTOR1);
+    		setSpeed(speed-i, TIM_CHANNEL_MOTOR2);
+    		osDelay(10);
     	}
+    	motor1_speed = 0x00;
+    	motor2_speed = 0x00;
     	return;
     }
 
@@ -767,22 +768,54 @@ void MotorCommand(int fwd_bck, int left_right, int brake) {
             break;
 	}
 
+
 	switch(left_right) {
 		case MTLEFT:
-			setSpeed(0xF0, TIM_CHANNEL_MOTOR1);
-			setSpeed(0xD0, TIM_CHANNEL_MOTOR2);
+			setSpeed(speed, TIM_CHANNEL_MOTOR1);
+			motor1_speed = 0xF0;
+			setSpeed(speed - 0x20, TIM_CHANNEL_MOTOR2);
+			motor2_speed = 0xD0;
 			break;
 		case MTRIGHT:
-			setSpeed(0xD0, TIM_CHANNEL_MOTOR1);
-			setSpeed(0xF0, TIM_CHANNEL_MOTOR2);
+			setSpeed(speed - 0x20, TIM_CHANNEL_MOTOR1);
+			motor1_speed = 0xD0;
+			setSpeed(speed, TIM_CHANNEL_MOTOR2);
+			motor2_speed = 0xF0;
 			break;
 		default:
-			setSpeed(0xF0, TIM_CHANNEL_MOTOR1);
-			setSpeed(0xF0, TIM_CHANNEL_MOTOR2);
+			setSpeed(speed, TIM_CHANNEL_MOTOR1);
+			motor1_speed = 0xF0;
+			setSpeed(speed, TIM_CHANNEL_MOTOR2);
+			motor2_speed = 0xF0;
 			break;
 	}
 }
 
+#define PRINTF_USES_HAL_TX		1
+
+int __io_putchar(int ch)
+{
+	uint8_t data = ch;
+	#if PRINTF_USES_HAL_TX
+		HAL_StatusTypeDef status = HAL_UART_Transmit(&huart1, (uint8_t*)&data, 1, 100);
+	#else
+		while(__HAL_UART_GET_FLAG(&huart1, UART_FLAG_TXE) == RESET) { ; }
+		huart1.Instance->TDR = (uint16_t)data;
+	#endif
+	return 0;
+}
+
+
+	int _write(int file, char *ptr, int len)
+	{
+		int DataIdx;
+
+		for (DataIdx = 0; DataIdx < len; DataIdx++)
+		{
+			__io_putchar(*ptr++);
+		}
+		return len;
+	}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -794,34 +827,100 @@ void MotorCommand(int fwd_bck, int left_right, int brake) {
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void const * argument)
 {
-
+	printf("Hello\n");
   /* USER CODE BEGIN 5 */
+	uint32_t socket = 0;
+	uint8_t buff[10];
+	uint16_t datalen;
+
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
 
-  /* Infinite loop */
+	if (WIFI_Init() == WIFI_STATUS_OK) {
+		printf("WiFi initialized :)\n");
+	} else printf("WiFi not initialized\n");
 
+	const char* MYSSID = "Honor 8X";
+	const char* PASSWORD = "12345678";
+
+	if (WIFI_Connect((__uint8_t *)MYSSID, (__uint8_t *)PASSWORD, WIFI_ECN_WPA2_PSK) == WIFI_STATUS_OK) {
+		printf("WiFi connection established\n");
+	} else printf("Cannot establish WiFi connection\n");
+
+	uint8_t IP_Addr[4];
+	if(WIFI_GetIP_Address(IP_Addr) == WIFI_STATUS_OK) {
+		printf("IP Address : %d.%d.%d.%d\n",
+	               IP_Addr[0],
+	               IP_Addr[1],
+	               IP_Addr[2],
+	               IP_Addr[3]);
+	}
+
+
+	uint8_t ipaddr[4] = {192, 168, 43, 120};
+	if (WIFI_OpenClientConnection(socket, WIFI_UDP_PROTOCOL, "ala123", ipaddr, 2137, 0) == WIFI_STATUS_OK) {
+		printf("Opened Client Connection\n");
+	} else printf("Client connection cannot be opened\n");
+
+	//zainicjalizowano - miganie diody
+	for (int i = 0; i < 3; i++) {
+		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
+		HAL_Delay(50);
+		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
+		HAL_Delay(50);
+	}
+
+  /* Infinite loop */
 //C:\Users\Student\STM32Cube\Repository\STM32Cube_FW_L4_V1.13.0\Projects\B-L475E-IOT01A\Templates
   for(;;)
   {
-	  MotorCommand(MTFORWARD, 0, 0);
-	  osDelay(3000);
-	  MotorCommand(MTBACKWARD, 0, 0);
-	  osDelay(3000);
-	  MotorCommand(0, 0, 1);
-	  osDelay(3000);
-	  MotorCommand(MTFORWARD, MTLEFT, 0);
-	  osDelay(3000);
-	  MotorCommand(MTFORWARD, MTRIGHT, 0);
-	  osDelay(3000);
-	  MotorCommand(0, 0, 1);
-	  osDelay(3000);
-	  MotorCommand(MTBACKWARD, MTLEFT, 0);
-	  osDelay(3000);
-	  MotorCommand(MTBACKWARD, MTRIGHT, 0);
-	  osDelay(3000);
-	  MotorCommand(0, 0, 1);
-	  osDelay(3000);
+	  if(WIFI_ReceiveData(socket, buff, sizeof(buff), &datalen, WIFI_READ_TIMEOUT) == WIFI_STATUS_OK) {
+		  if (datalen == 6) {
+//			  printf("%c - datalen %d\n", (char)buff[1], datalen);
+			  int fwd_bck = MTFORWARD, left_right = 0, brake = 0, speed = NORMALSPEED;
+			  if ((char)buff[0] == '1') brake = MTBRAKE;
+			  else {
+				  if ((char)buff[1] == '1') fwd_bck = MTFORWARD;
+			  	  else if ((char)buff[2] == '1') fwd_bck = MTBACKWARD;
+			  	  if ((char)buff[3] == '1') left_right = MTLEFT;
+			  	  else if ((char)buff[4] == '1') left_right = MTRIGHT;
+			  	  if ((char)buff[5] == '1') speed = MAXSPEED;
+			  }
+			  MotorCommand(fwd_bck, left_right, brake, speed);
+	  	  }
+	  }
+//	  else {
+//		  if (counter == 10) {
+//			  printf("jaisbdgfoaisdjbgogfiausw\n");
+//			  MotorCommand(0, 0, 0); //awaryjne hamowanie
+//			  if (WIFI_CloseClientConnection(socket) == WIFI_STATUS_OK) printf("Closed Client Connection\n");
+//			  if (WIFI_Disconnect() == WIFI_STATUS_OK) printf("Disconnected\n");
+//			  if (WIFI_Connect((__uint8_t *)MYSSID, (__uint8_t *)PASSWORD, WIFI_ECN_WPA2_PSK) == WIFI_STATUS_OK) {
+//			  	printf("ok\n");
+//			  } else printf("nie ok\n");
+//			  if (WIFI_OpenClientConnection(socket, WIFI_UDP_PROTOCOL, "ala123", ipaddr, 2137, 0) == WIFI_STATUS_OK) {
+//			  	printf("Opened Client Connection\n");
+//			  } else printf("Client connection cannot be opened\n");
+//		  } else counter++;
+//	  }
+//	  if (counter_to_ping == 20) {
+
+//		  counter_to_ping = 0;
+//		  printf("Pinging...\n");
+//		  if (WIFI_Ping(ipaddr, 1, 20) != WIFI_STATUS_OK) {
+//			  MotorCommand(0, 0, 0); //awaryjne hamowanie
+//			  if (WIFI_CloseClientConnection(socket) == WIFI_STATUS_OK) printf("Closed Client Connection\n");
+//			  if (WIFI_Disconnect() == WIFI_STATUS_OK) printf("Disconnected\n");
+//			  if (WIFI_Connect((__uint8_t *)MYSSID, (__uint8_t *)PASSWORD, WIFI_ECN_WPA2_PSK) == WIFI_STATUS_OK) {
+//			  		printf("ok\n");
+//			  } else printf("nie ok\n");
+//			  if (WIFI_OpenClientConnection(socket, WIFI_UDP_PROTOCOL, "ala123", ipaddr, 2137, 0) == WIFI_STATUS_OK) {
+//			  		printf("Opened Client Connection\n");
+//			  } else printf("Client connection cannot be opened\n");
+//		  }
+//	  }
+//	  else counter_to_ping++;
+
   }
   /* USER CODE END 5 */ 
 }

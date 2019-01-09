@@ -228,6 +228,8 @@
 
 /* USER CODE BEGIN Private defines */
 
+#define max(a, b) ((a)>(b)) ? (a) : (b)
+
 //A - JEDZIE DO TY£U, B - DO PRZODU
 #define MOTOR1_A 2		//MOTOR 1 - PRAWE KÓ£KO
 #define MOTOR1_B 3
@@ -238,11 +240,15 @@
 #define MTBACKWARD 2
 #define MTLEFT 3
 #define MTRIGHT 4
+#define MAXSPEED 0xFE
+#define NORMALSPEED 0xE0
 
 #define MTBRAKE 1
 
 #define TIM_CHANNEL_MOTOR1 3
 #define TIM_CHANNEL_MOTOR2 2
+
+#define WIFI_READ_TIMEOUT  10
 
 /* USER CODE END Private defines */
 

@@ -1,12 +1,31 @@
-16:09:05 **** Incremental Build of configuration Debug for project XDDDDDDD ****
+16:10:18 **** Incremental Build of configuration Debug for project XDDDDDDD ****
 Info: Internal Builder is used for build
 arm-atollic-eabi-gcc -c -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -std=gnu11 -D__weak=__attribute__((weak)) -D__packed=__attribute__((__packed__)) -DUSE_HAL_DRIVER -DSTM32L475xx -I../Inc -I../Drivers/STM32L4xx_HAL_Driver/Inc -I../Drivers/STM32L4xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -I../Drivers/CMSIS/Device/ST/STM32L4xx/Include -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Drivers/CMSIS/Include -Os -ffunction-sections -fdata-sections -g -fstack-usage -Wall -specs=nano.specs -o Src\main.o ..\Src\main.c 
-arm-atollic-eabi-gcc -o XDDDDDDD.elf Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_cortex.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_dfsdm.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_dma.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_dma_ex.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_flash.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_flash_ex.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_flash_ramfunc.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_gpio.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_i2c.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_i2c_ex.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_pcd.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_pcd_ex.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_pwr.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_pwr_ex.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_qspi.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_rcc.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_rcc_ex.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_spi.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_spi_ex.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_tim.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_tim_ex.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_uart.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_uart_ex.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_ll_usb.o Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS\cmsis_os.o Middlewares\Third_Party\FreeRTOS\Source\croutine.o Middlewares\Third_Party\FreeRTOS\Source\event_groups.o Middlewares\Third_Party\FreeRTOS\Source\list.o Middlewares\Third_Party\FreeRTOS\Source\portable\GCC\ARM_CM4F\port.o Middlewares\Third_Party\FreeRTOS\Source\portable\MemMang\heap_4.o Middlewares\Third_Party\FreeRTOS\Source\queue.o Middlewares\Third_Party\FreeRTOS\Source\stream_buffer.o Middlewares\Third_Party\FreeRTOS\Source\tasks.o Middlewares\Third_Party\FreeRTOS\Source\timers.o Src\freertos.o Src\main.o Src\stm32l4xx_hal_msp.o Src\stm32l4xx_hal_timebase_TIM.o Src\stm32l4xx_it.o Src\system_stm32l4xx.o startup\startup_stm32l475xx.o -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -T../STM32L475VG_FLASH.ld -specs=nosys.specs -static -Wl,-Map=XDDDDDDD.map -Wl,--gc-sections -Wl,--defsym=malloc_getpagesize_P=0x80 -Wl,--start-group -lc -lm -Wl,--end-group -specs=nano.specs 
+..\Src\main.c: In function '__io_putchar':
+..\Src\main.c:800:21: warning: unused variable 'status' [-Wunused-variable]
+   HAL_StatusTypeDef status = HAL_UART_Transmit(&huart1, (uint8_t*)&data, 1, 100);
+                     ^~~~~~
+..\Src\main.c: In function 'StartDefaultTask':
+..\Src\main.c:846:19: warning: pointer targets in passing argument 1 of 'WIFI_Connect' differ in signedness [-Wpointer-sign]
+  if (WIFI_Connect((__uint8_t *)MYSSID, (__uint8_t *)PASSWORD, WIFI_ECN_WPA2_PSK) == WIFI_STATUS_OK) {
+                   ^
+In file included from ..\Src\main.c:56:0:
+../Inc/wifi.h:140:21: note: expected 'const char *' but argument is of type '__uint8_t * {aka unsigned char *}'
+ WIFI_Status_t       WIFI_Connect(
+                     ^~~~~~~~~~~~
+..\Src\main.c:846:40: warning: pointer targets in passing argument 2 of 'WIFI_Connect' differ in signedness [-Wpointer-sign]
+  if (WIFI_Connect((__uint8_t *)MYSSID, (__uint8_t *)PASSWORD, WIFI_ECN_WPA2_PSK) == WIFI_STATUS_OK) {
+                                        ^
+In file included from ..\Src\main.c:56:0:
+../Inc/wifi.h:140:21: note: expected 'const char *' but argument is of type '__uint8_t * {aka unsigned char *}'
+ WIFI_Status_t       WIFI_Connect(
+                     ^~~~~~~~~~~~
+arm-atollic-eabi-gcc -o XDDDDDDD.elf Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_cortex.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_dfsdm.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_dma.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_dma_ex.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_flash.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_flash_ex.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_flash_ramfunc.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_gpio.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_i2c.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_i2c_ex.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_pcd.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_pcd_ex.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_pwr.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_pwr_ex.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_qspi.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_rcc.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_rcc_ex.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_spi.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_spi_ex.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_tim.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_tim_ex.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_uart.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_uart_ex.o Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_ll_usb.o Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS\cmsis_os.o Middlewares\Third_Party\FreeRTOS\Source\croutine.o Middlewares\Third_Party\FreeRTOS\Source\event_groups.o Middlewares\Third_Party\FreeRTOS\Source\list.o Middlewares\Third_Party\FreeRTOS\Source\portable\GCC\ARM_CM4F\port.o Middlewares\Third_Party\FreeRTOS\Source\portable\MemMang\heap_4.o Middlewares\Third_Party\FreeRTOS\Source\queue.o Middlewares\Third_Party\FreeRTOS\Source\stream_buffer.o Middlewares\Third_Party\FreeRTOS\Source\tasks.o Middlewares\Third_Party\FreeRTOS\Source\timers.o Src\es_wifi.o Src\es_wifi_io.o Src\freertos.o Src\main.o Src\stm32l4xx_hal_msp.o Src\stm32l4xx_hal_timebase_TIM.o Src\stm32l4xx_it.o Src\system_stm32l4xx.o Src\wifi.o startup\startup_stm32l475xx.o -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -T../STM32L475VG_FLASH.ld -specs=nosys.specs -static -Wl,-Map=XDDDDDDD.map -Wl,--gc-sections -Wl,--defsym=malloc_getpagesize_P=0x80 -Wl,--start-group -lc -lm -Wl,--end-group -specs=nano.specs 
 C:\Program Files (x86)\Atollic\TrueSTUDIO for STM32 9.0.1\ide\jre\bin\java -jar C:\Program Files (x86)\Atollic\TrueSTUDIO for STM32 9.0.1\Tools\arm-atollic-reports.jar sizeinfo list XDDDDDDD.elf 
 Generate build reports...
 Print size information
    text	   data	    bss	    dec	    hex	filename
-  16920	     16	   6644	  23580	   5c1c	XDDDDDDD.elf
+  28052	    116	   8652	  36820	   8fd4	XDDDDDDD.elf
 Print size information done
 Generate listing file
 Output sent to: XDDDDDDD.list
@@ -14,5 +33,5 @@ Generate listing file done
 Generate build reports done
 arm-atollic-eabi-objcopy.exe -O ihex XDDDDDDD.elf XDDDDDDD.hex 
 
-16:09:06 Build Finished (took 938ms)
+16:10:19 Build Finished (took 1s.125ms)
 

@@ -1,21 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
+	<section name="org.eclipse.ui.texteditor.GotoLineAction$GotoLineDialog_dialogBounds">
+		<item value="409" key="DIALOG_X_ORIGIN"/>
+		<item value="375" key="DIALOG_Y_ORIGIN"/>
+	</section>
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
 		<item value="false" key="isRegEx"/>
-		<item value="ConfigChannel" key="selection"/>
+		<item value="StartClient" key="selection"/>
 		<item value="false" key="casesensitive"/>
 		<item value="false" key="incremental"/>
 		<item value="true" key="wrap"/>
 		<item value="false" key="wholeword"/>
 		<list key="findhistory">
+			<item value="StartClient"/>
+			<item value="usart"/>
+			<item value="local"/>
+			<item value="SSID"/>
+			<item value="#include &quot;es_wifi_conf.h&quot;"/>
+			<item value="ccr"/>
+			<item value="TIM_OCMODE_PWM1"/>
 			<item value="ConfigChannel"/>
-			<item value="HAL_TIM_OC_S"/>
-			<item value="HAL"/>
-			<item value="htim"/>
-			<item value="start"/>
-			<item value="counter"/>
-			<item value="DIR_LATCH"/>
-			<item value="HIGH"/>
 		</list>
 		<list key="replacehistory">
 			<item value=""/>
